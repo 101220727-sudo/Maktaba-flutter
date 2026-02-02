@@ -15,11 +15,29 @@ class NewVisitScreen extends StatefulWidget {
 }
 
 class _NewVisitScreenState extends State<NewVisitScreen> {
-  final _activityTypeController = TextEditingController();
+  // Controllers
   final _ageController = TextEditingController();
-  final _locationController = TextEditingController();
+  //final _locationController = TextEditingController();
+  //final _locationController = TextEditingController();
   final _visitorsController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  // ✅ Location dropdown
+  String? _selectedLocation;
+  final List<String> _locations = [
+    "بيروت ",
+    "طرابلس ",
+    "صور ",
+    "النبطية ",
+    "بنت جبيل ",
+    "الضاحية ",
+    "البقاع ",
+    "بعلبك ",
+    "بقاع غربي ",
+    "عكار ",
+    "جبيل ",
+    "صيدا ",
+  ];
 
   @override
   void initState() {
@@ -30,9 +48,9 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
 
   @override
   void dispose() {
-    _activityTypeController.dispose();
+    
     _ageController.dispose();
-    _locationController.dispose();
+    //_locationController.dispose();
     _visitorsController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -80,12 +98,11 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     }
   }
 
+  // Submit
   void _submitVisitForm() {
     final provider = context.read<VisitProvider>();
 
-    // Validate required fields
-    if (_activityTypeController.text.isEmpty ||
-        _locationController.text.isEmpty ||
+    if (_selectedLocation == null ||
         _ageController.text.isEmpty ||
         _visitorsController.text.isEmpty ||
         _phoneController.text.isEmpty ||
@@ -101,7 +118,7 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     }
 
     // Set provider values
-    provider.setLocation(_locationController.text);
+    provider.setLocation(_selectedLocation!);
     provider.setAge(int.parse(_ageController.text));
     provider.setNbOfVisitors(int.parse(_visitorsController.text));
     provider.setPhone(_phoneController.text);
@@ -147,6 +164,41 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     );
   }
 
+  // Styled dropdown for location
+  Widget _styledDropdown({
+    required String label,
+    required IconData icon,
+    required List<String> items,
+    String? selectedValue,
+    required Function(String?) onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        decoration: InputDecoration(
+          label: Text(label, style: const TextStyle(color: Color(0xFF76499C))),
+          prefixIcon: Icon(icon, color: const Color(0xFF76499C)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Color(0xFF76499C)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Color(0xFF76499C), width: 2),
+          ),
+        ),
+        items: items
+            .map((e) => DropdownMenuItem<String>(
+                  value: e,
+                  child: Text(e),
+                ))
+            .toList(),
+        onChanged: onChanged,
+      ),
+    );
+  }
+
   // Picker box for date/time
   Widget _pickerBox(String text, IconData icon) {
     return Container(
@@ -182,8 +234,19 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                _styledField(_activityTypeController, "نوع النشاط", Icons.event),
-                _styledField(_locationController, "المكان", Icons.place),
+                // ✅ Location dropdown
+                _styledDropdown(
+                  label: "المكان",
+                  icon: Icons.place,
+                  items: _locations,
+                  selectedValue: _selectedLocation,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedLocation = value;
+                    });
+                  },
+                ),
+
                 _styledField(_ageController, "الفئة العمرية", Icons.groups),
                 _styledField(_visitorsController, "عدد الزوار", Icons.people,
                     type: TextInputType.number),
