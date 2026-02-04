@@ -13,11 +13,13 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  String? _selectedType; // stores selected user type ID
+  String? _typeError;
 
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
-  final _locationController = TextEditingController();
+  
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -28,13 +30,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _nameController.dispose();
-    _locationController.dispose();
+
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedType == null) {
+      setState(() {
+        _typeError = "يرجى اختيار نوع المستخدم";
+      });
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -57,21 +66,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _emailController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
       name: _nameController.text.trim(),
-      location: _locationController.text.trim(),
+      type: _selectedType!,
       password: _passwordController.text,
     );
 
     try {
-      // Save to local database
+
       insertUser(newUser);
 
-      // Save to Laravel database
+
       await ApiService.registerUser(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
         phone: _phoneController.text.trim(),
-        location: _locationController.text.trim(),
+        type: _selectedType!,
       );
 
       setState(() => _isLoading = false);
@@ -154,20 +163,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 25),
 
+                        // Email
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            label: Text(
+                            label: const Text(
                               "البريد الإلكتروني",
-                              style: TextStyle(color: Colors.purple),
+                              style: TextStyle(color: Color(0xFF76499C)),
                             ),
-                            prefixIcon: Icon(Icons.email, color: Colors.purple),
+                            prefixIcon: const Icon(Icons.email, color: Color(0xFF76499C)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: Color.fromARGB(255, 120, 12, 139),
-                              ),
+                              
                             ),
                           ),
                           validator: (value) {
@@ -183,20 +191,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
+                        // Phone
                         TextFormField(
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            label: Text(
+                            label: const Text(
                               "رقم الهاتف",
-                              style: TextStyle(color: Colors.purple),
+                              style: TextStyle(color: Color(0xFF76499C)),
                             ),
-                            prefixIcon: Icon(Icons.phone, color: Colors.purple),
+                            prefixIcon: const Icon(Icons.phone, color: Color(0xFF76499C)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: Color.fromARGB(255, 120, 12, 139),
-                              ),
+                              
                             ),
                           ),
                           validator: (value) {
@@ -212,22 +219,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
+                        // Full Name
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
-                            label: Text(
+                            label: const Text(
                               "الاسم الكامل",
-                              style: TextStyle(color: Colors.purple),
+                              style: TextStyle(color: Color(0xFF76499C)),
                             ),
-                            prefixIcon: Icon(
-                              Icons.person,
-                              color: Colors.purple,
-                            ),
+                            prefixIcon: const Icon(Icons.person, color: Color(0xFF76499C)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: Color.fromARGB(255, 120, 12, 139),
-                              ),
+                              
                             ),
                           ),
                           validator: (value) {
@@ -240,50 +243,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        TextFormField(
-                          controller: _locationController,
-                          decoration: InputDecoration(
-                            label: Text(
-                              "الموقع",
-                              style: TextStyle(color: Colors.purple),
+                        // User Type (Radio buttons)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Radio<String>(
+                                  value: "2",
+                                  groupValue: _selectedType,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedType = value;
+                                      _typeError = null;
+                                    });
+                                  },
+                                ),
+                                const Text("مدرسة", style: TextStyle(color: Color(0xFF76499C))),
+                                Radio<String>(
+                                  value: "4",
+                                  groupValue: _selectedType,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedType = value;
+                                      _typeError = null;
+                                    });
+                                  },
+                                ),
+                                const Text("كشافة", style: TextStyle(color: Color(0xFF76499C))),
+                                Radio<String>(
+                                  value: "3",
+                                  groupValue: _selectedType,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedType = value;
+                                      _typeError = null;
+                                    });
+                                  },
+                                ),
+                                const Text("جمعية", style: TextStyle(color: Color(0xFF76499C))),
+                              ],
                             ),
-                            prefixIcon: Icon(
-                              Icons.location_on,
-                              color: Colors.purple,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: Color.fromARGB(255, 120, 12, 139),
+                            if (_typeError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12, top: 4),
+                                child: Text(
+                                  _typeError!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                                ),
                               ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'الرجاء إدخال الموقع';
-                            }
-                            return null;
-                          },
+                          ],
                         ),
+
                         const SizedBox(height: 16),
 
+                        // Password
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            label: Text(
+                            label: const Text(
                               "كلمة المرور",
-                              style: TextStyle(color: Colors.purple),
+                              style: TextStyle(color: Color(0xFF76499C)),
                             ),
-                            prefixIcon: Icon(
-                              Icons.password,
-                              color: Colors.purple,
-                            ),
+                            prefixIcon: const Icon(Icons.password, color: Color(0xFF76499C)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: Color.fromARGB(255, 120, 12, 139),
-                              ),
+
                             ),
                             suffixIcon: IconButton(
                               onPressed: () => setState(
@@ -311,12 +337,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 28),
 
+                        // Submit button
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _submitForm,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF76499C),
+                              backgroundColor: const Color(0xFF76499C),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -345,7 +372,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const Text(
                               'هل لديك حساب؟ ',
                               style: TextStyle(
-                                color: Color(0xFF444444),
+                                color: Color(0xFF76499C),
                                 fontSize: 15,
                               ),
                             ),
@@ -354,7 +381,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Navigator.pop(context);
                               },
                               child: const Text(
-                                '  سجل دخول',
+                                ' سجل دخول',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   decoration: TextDecoration.underline,

@@ -15,48 +15,37 @@ class NewVisitScreen extends StatefulWidget {
 }
 
 class _NewVisitScreenState extends State<NewVisitScreen> {
-  // Controllers
+
   final _ageController = TextEditingController();
-  //final _locationController = TextEditingController();
-  //final _locationController = TextEditingController();
+
   final _visitorsController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  // ✅ Location dropdown
+
   String? _selectedLocation;
   final List<String> _locations = [
-    "بيروت ",
-    "طرابلس ",
-    "صور ",
-    "النبطية ",
-    "بنت جبيل ",
-    "الضاحية ",
-    "البقاع ",
-    "بعلبك ",
-    "بقاع غربي ",
-    "عكار ",
-    "جبيل ",
-    "صيدا ",
+    "بيروت", "طرابلس", "صور", "النبطية", "بنت جبيل", "الضاحية",
+    "البقاع", "بعلبك", "بقاع غربي", "عكار", "جبيل", "صيدا",
   ];
 
   @override
   void initState() {
     super.initState();
-    // Set userId in provider
+
     context.read<VisitProvider>().setUserId(int.parse(widget.userId));
   }
 
   @override
   void dispose() {
-    
+
     _ageController.dispose();
-    //_locationController.dispose();
+
     _visitorsController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
 
-  // Date Picker
+  // 📅 Date Picker
   void _showDatePicker() async {
     final picked = await showDatePicker(
       context: context,
@@ -78,7 +67,7 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     }
   }
 
-  // Time Picker
+  // ⏰ Time Picker
   void _showTimePicker() async {
     final picked = await showTimePicker(
       context: context,
@@ -98,7 +87,43 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     }
   }
 
-  // Submit
+  // 📍 Location Picker
+  Future<void> _showLocationPicker() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SizedBox(
+        height: 320,
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            const Text(
+              "اختر المكان",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _locations.length,
+                itemBuilder: (_, index) => ListTile(
+                  title: Text(_locations[index]),
+                  onTap: () => Navigator.pop(context, _locations[index]),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() => _selectedLocation = result);
+    }
+  }
+
+  // 📤 Submit
   void _submitVisitForm() {
     final provider = context.read<VisitProvider>();
 
@@ -117,14 +142,15 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
       return;
     }
 
-    // Set provider values
+
     provider.setLocation(_selectedLocation!);
     provider.setAge(int.parse(_ageController.text));
     provider.setNbOfVisitors(int.parse(_visitorsController.text));
     provider.setPhone(_phoneController.text);
     provider.setGender(provider.gender ?? 'mixed');
-    // Optional: activity type if added in provider
-    // provider.setActivityType(_activityTypeController.text);
+
+
+
 
     // Navigate to PackageScreen
     Navigator.push(
@@ -139,46 +165,32 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
     );
   }
 
-  // Styled text field
-  Widget _styledField(TextEditingController controller, String label, IconData icon,
-      {TextInputType type = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        controller: controller,
-        keyboardType: type,
-        maxLength: 50,
-        decoration: InputDecoration(
-          label: Text(label, style: const TextStyle(color: Color(0xFF76499C))),
-          prefixIcon: Icon(icon, color: const Color(0xFF76499C)),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: Color(0xFF76499C)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: Color(0xFF76499C), width: 2),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Styled dropdown for location
-  Widget _styledDropdown({
+  // 🔹 Unified styled box for both fields and pickers
+  Widget _styledBox({
     required String label,
-    required IconData icon,
-    required List<String> items,
-    String? selectedValue,
-    required Function(String?) onChanged,
+    IconData? icon,
+    TextEditingController? controller,
+    TextInputType type = TextInputType.text,
+    bool isPicker = false,
+    VoidCallback? onTap,
+    String? value, // For pickers
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
+      child: TextFormField(
+        controller: controller,
+        readOnly: isPicker,
+        onTap: onTap,
+        keyboardType: type,
         decoration: InputDecoration(
-          label: Text(label, style: const TextStyle(color: Color(0xFF76499C))),
-          prefixIcon: Icon(icon, color: const Color(0xFF76499C)),
+          labelText: label,
+          labelStyle: const TextStyle(color: Color(0xFF76499C)),
+          hintText: value,
+          hintStyle: const TextStyle(color: Color(0xFF76499C)),
+          prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF76499C)) : null,
+          suffixIcon: isPicker
+              ? const Icon(Icons.arrow_drop_down, color: Color(0xFF76499C))
+              : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
             borderSide: const BorderSide(color: Color(0xFF76499C)),
@@ -187,32 +199,9 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
             borderRadius: BorderRadius.circular(5),
             borderSide: const BorderSide(color: Color(0xFF76499C), width: 2),
           ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         ),
-        items: items
-            .map((e) => DropdownMenuItem<String>(
-                  value: e,
-                  child: Text(e),
-                ))
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  // Picker box for date/time
-  Widget _pickerBox(String text, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF76499C)),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(text, style: const TextStyle(color: Color(0xFF76499C))),
-          Icon(icon, color: const Color(0xFF76499C)),
-        ],
+        style: const TextStyle(fontSize: 16, color: Color(0xFF76499C)),
       ),
     );
   }
@@ -228,33 +217,47 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
           backgroundColor: const Color(0xFF76499C),
           title: const Text("حجز زيارة", style: TextStyle(color: Colors.white)),
           centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // ✅ Location dropdown
-                _styledDropdown(
-                  label: "المكان",
+                // Location picker
+                _styledBox(
+                  label: "اختر المكان",
                   icon: Icons.place,
-                  items: _locations,
-                  selectedValue: _selectedLocation,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedLocation = value;
-                    });
-                  },
+                  isPicker: true,
+                  onTap: _showLocationPicker,
+                  value: _selectedLocation,
                 ),
 
-                _styledField(_ageController, "الفئة العمرية", Icons.groups),
-                _styledField(_visitorsController, "عدد الزوار", Icons.people,
-                    type: TextInputType.number),
-                _styledField(_phoneController, "رقم الهاتف", Icons.phone,
-                    type: TextInputType.phone),
-                const SizedBox(height: 10),
+                // Age
+                _styledBox(
+                  label: "الفئة العمرية",
+                  icon: Icons.groups,
+                  controller: _ageController,
+                  type: TextInputType.number,
+                ),
 
-                // Gender selection
+                // Visitors
+                _styledBox(
+                  label: "عدد الزوار",
+                  icon: Icons.people,
+                  controller: _visitorsController,
+                  type: TextInputType.number,
+                ),
+
+                // Phone
+                _styledBox(
+                  label: "رقم الهاتف",
+                  icon: Icons.phone,
+                  controller: _phoneController,
+                  type: TextInputType.phone,
+                ),
+
+                // Gender
                 Row(
                   children: [
                     Radio(
@@ -278,30 +281,30 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
                   ],
                 ),
 
-                // Date & Time Pickers
+                // Date & Time pickers
                 Row(
                   children: [
                     Expanded(
-                      child: InkWell(
+                      child: _styledBox(
+                        label: "اختر التاريخ",
+                        icon: Icons.calendar_month,
+                        isPicker: true,
                         onTap: _showDatePicker,
-                        child: _pickerBox(
-                          provider.eventDate == null
-                              ? "اختر التاريخ"
-                              : DateFormat.yMd().format(provider.eventDate!),
-                          Icons.calendar_month,
-                        ),
+                        value: provider.eventDate == null
+                            ? null
+                            : DateFormat.yMd().format(provider.eventDate!),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: InkWell(
+                      child: _styledBox(
+                        label: "اختر الوقت",
+                        icon: Icons.access_time,
+                        isPicker: true,
                         onTap: _showTimePicker,
-                        child: _pickerBox(
-                          provider.eventDate == null
-                              ? "اختر الوقت"
-                              : DateFormat.Hm().format(provider.eventDate!),
-                          Icons.access_time,
-                        ),
+                        value: provider.eventDate == null
+                            ? null
+                            : DateFormat.Hm().format(provider.eventDate!),
                       ),
                     ),
                   ],
@@ -318,7 +321,9 @@ class _NewVisitScreenState extends State<NewVisitScreen> {
                         child: const Text("إلغاء")),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                        onPressed: _submitVisitForm, child: const Text("التالي")),
+                        onPressed: _submitVisitForm,
+                        child: const Text("التالي")),
+                        
                   ],
                 ),
               ],

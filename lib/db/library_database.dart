@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 class LibraryDatabase {
   Future<Database> getDatabase() async {
     String dbPath = await getDatabasesPath();
-    //await deleteDatabase(join(dbPath, 'library.db'));
+    await deleteDatabase(join(dbPath, 'library.db'));
     Database db = await openDatabase(
       join(dbPath, 'library.db'),
       onCreate: (db, version) async {
@@ -14,7 +14,7 @@ class LibraryDatabase {
           'email TEXT UNIQUE, '
           'phoneNumber TEXT, '
           'name TEXT, '
-          'location TEXT, '
+          'type TEXT, '
           'password TEXT'
           ')',
         );
@@ -39,7 +39,7 @@ class LibraryDatabase {
         );
       },
 
-      version: 2,
+      version: 3,
     );
 
     return db;

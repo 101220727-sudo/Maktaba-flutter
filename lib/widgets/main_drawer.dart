@@ -7,12 +7,14 @@ class MainDrawer extends StatelessWidget {
     required this.onAddVisit,//
     required this.onViewSchedule,
     required this.onNewsTap,
+    required this.onUpcomingEventsTap, // NEW callback
     required this.onHomePage,
   });
   final String userId;// btjeb l user id
   final void Function() onAddVisit;
   final void Function() onViewSchedule;
   final void Function() onNewsTap;
+  final void Function() onUpcomingEventsTap; // NEW
   final void Function() onHomePage;
 
   @override
@@ -54,6 +56,13 @@ class MainDrawer extends StatelessWidget {
             title: Text('أخبار المكتبة', style: TextStyle(color: Colors.white)),
             onTap: onNewsTap,
           ),
+
+          ListTile(
+            leading: Icon(Icons.event, color: Colors.white),
+            title: Text('الأحداث القادمة', style: TextStyle(color: Colors.white)),
+            onTap: onUpcomingEventsTap,
+          ),
+
           ListTile(
             leading: Icon(Icons.logout, color: Colors.white),
             title: Text('تسجيل الخروج', style: TextStyle(color: Colors.white)),

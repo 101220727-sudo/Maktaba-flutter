@@ -6,6 +6,7 @@ import 'package:library_app/screens/new_visit_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
 import '../models/news.dart';
+import '../screens/upcoming_event_screen.dart';
 
 
 
@@ -75,6 +76,18 @@ class _NewsPageState extends State<NewsPage> {
                     VisitScheduleScreen(userId: widget.userId),
               ),
             );
+          },
+          onUpcomingEventsTap: () {
+            Navigator.pop(context);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UpcomingEventsPage(
+                  userId: widget.userId,
+                ),
+              ),
+            );
+           
           },
           onNewsTap: () {
             Navigator.pop(context);

@@ -52,7 +52,7 @@ class UserInfo extends StatelessWidget {
           const SizedBox(height: 12),
           _buildInfoRow(Icons.phone_outlined, user.phoneNumber),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.location_on_outlined, user.location),
+          _buildInfoRow(Icons.location_on_outlined, user.type == 1 ? 'مشرف' : 'مستخدم'),
         ],
       ),
     );

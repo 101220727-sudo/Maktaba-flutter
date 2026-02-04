@@ -5,7 +5,7 @@ class User {
     required this.email,
     required this.phoneNumber,
     required this.name,
-    required this.location,
+    required this.type,
     required this.password,
     id,
   }) : id = id ?? const Uuid().v4();
@@ -14,16 +14,17 @@ class User {
   final String email;
   final String phoneNumber;
   final String name;
-  final String location;
+  final String type;
   final String password;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'].toString(),          // convert backend id to string
+      id: json['id'].toString(),
+      type: json['type'].toString(),
       email: json['email'] ?? '',
       phoneNumber: json['phone'] ?? '',
       name: json['name'] ?? '',
-      location: json['location'] ?? '',
+
       password: json['password'] ?? '',
     );
   }
@@ -35,7 +36,7 @@ class User {
       'email': email,
       'phoneNumber': phoneNumber,
       'name': name,
-      'location': location,
+      'type': type,
       'password': password,
     };
   }

@@ -17,7 +17,7 @@ void insertUser(User user) async {
     email: user.email,
     phoneNumber: user.phoneNumber,
     name: user.name,
-    location: user.location,
+    type: user.type,
     password: _hashPassword(user.password),
   );
   try {
@@ -37,7 +37,7 @@ Future<List<User>> loadUsers() async {
       email: row['email'] as String,
       phoneNumber: row['phoneNumber'] as String,
       name: row['name'] as String,
-      location: row['location'] as String,
+      type: row['type'] as String,
       password: row['password'] as String,
     );
   }).toList();
@@ -59,7 +59,7 @@ Future<User?> verifyLogin(String email, String password) async {
       email: result.first['email'] as String,
       phoneNumber: result.first['phoneNumber'] as String,
       name: result.first['name'] as String,
-      location: result.first['location'] as String,
+      type: result.first['type'] as String,
       password: result.first['password'] as String,
     );
   }

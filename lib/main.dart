@@ -34,11 +34,7 @@ void main() async {
   LibraryDatabase database = LibraryDatabase();
   await database.getDatabase();
 
-  runApp(ChangeNotifierProvider(
-      create: (_) => VisitProvider(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

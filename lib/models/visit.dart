@@ -31,40 +31,56 @@ class Visit {
     String? placeName,
     TimeOfDay? time,
     DateTime? date,
-  }) :
-    status = status ?? 'pending',
-    activityType = activityType ?? '',
-    placeName = placeName ?? location,
-    time = time ?? TimeOfDay.now(),
-    date = date ?? eventDate;
+  })  : status = status ?? '',
+        activityType = activityType ?? '',
+        placeName = placeName ?? location,
+        time = time ?? TimeOfDay.now(),
+        date = date ?? eventDate;
 
+  /// Parse JSON from API safely
   factory Visit.fromJson(Map<String, dynamic> json) {
-    // Parse time string like "10:00" to TimeOfDay
+    
     TimeOfDay parseTime(String timeStr) {
       final parts = timeStr.split(':');
-      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+      return TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0);
     }
 
     return Visit(
-      id: json['id'],
-      userId: json['user_id'],
-      packageId: json['package_id'],
-      eventDate: DateTime.parse(json['event_date']),
-      location: json['location'],
-      age: json['age'],
-      nbOfVisitors: json['nb_of_visitors'],
-      gender: json['gender'],
-      phone: json['phone'],
-      status: json['status'] ?? 'pending',
-      activityType: json['activity_type'] ?? '',
-      placeName: json['place_name'] ?? json['location'],
-      time: json['time'] != null ? parseTime(json['time']) : TimeOfDay.now(),
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.parse(json['event_date']),
+      id: json['id'] != null ? int.tryParse(json['id'].toString()) ?? 0 : 0,
+      userId: json['user_id'] != null
+          ? int.tryParse(json['user_id'].toString()) ?? 0
+          : 0,
+      packageId: json['package_id'] != null
+          ? int.tryParse(json['package_id'].toString()) ?? 0
+          : 0,
+      eventDate: json['event_date'] != null
+          ? DateTime.tryParse(json['event_date'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      location: json['location']?.toString() ?? '',
+      age: json['age'] != null ? int.tryParse(json['age'].toString()) ?? 0 : 0,
+      nbOfVisitors: json['nb_of_visitors'] != null
+          ? int.tryParse(json['nb_of_visitors'].toString()) ?? 0
+          : 0,
+      gender: json['gender']?.toString(),
+      phone: json['phone']?.toString() ?? '',
+      status: json['status']?.toString() ?? "",
+      activityType: json['activity_type']?.toString() ?? '',
+      placeName: json['place_name']?.toString() ?? json['location']?.toString() ?? '',
+      time: json['time'] != null
+          ? parseTime(json['time'].toString())
+          : TimeOfDay.now(),
+      date: json['date'] != null
+          ? DateTime.tryParse(json['date'].toString())?.toLocal() ?? DateTime.now()
+          :DateTime.now(),
+
     );
   }
 
+  /// Convert Visit to JSON for submission
   Map<String, dynamic> toJson() => {
-        'id': id,
+
         'user_id': userId,
         'package_id': packageId,
         'event_date': eventDate.toIso8601String(),
@@ -72,6 +88,7 @@ class Visit {
         'age': age,
         'nb_of_visitors': nbOfVisitors,
         'gender': gender,
+        
         'phone': phone,
       };
 }

@@ -7,6 +7,7 @@ import '../models/news.dart';
 //import '../models/user.dart';
 import '../models/loggedInUser.dart';
 import 'package:flutter/foundation.dart';
+import '../models/upcoming_event.dart';
 
 
 class ApiService {
@@ -18,7 +19,7 @@ class ApiService {
     required String email,
     required String phone,
     required String password,
-    required String location,
+    required String type,
   }) async {
     final response = await http.post(
       Uri.parse("http://127.0.0.1:8000/api/register"),
@@ -28,7 +29,7 @@ class ApiService {
         'email': email,
         'phone': phone,
         'password': password,
-        'location': location,
+        'type': type,
       }),
     );
     debugPrint('STATUS: ${response.statusCode}');
@@ -122,22 +123,25 @@ class ApiService {
 
   // Get all visits of a user
   static Future<List<Visit>> getUserVisits(int userId) async {
-    final response =
-      await http.get(Uri.parse("$baseUrl/event-requests/$userId"), headers: {
-     'Accept': 'application/json',
-    });
+    final url = Uri.parse("$baseUrl/event-requests/$userId");
+    final response = await http.get(url, headers: {'Accept': 'application/json'});
 
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    final visits = (data['data'] as List)
-        .map((v) => Visit.fromJson(v))
-        .toList();
-    return visits;
-  } else {
-    debugPrint("ERROR RESPONSE: ${response.body}");
-    throw Exception('Failed to load visits');
+    if (response.statusCode == 200) {
+     print("Raw visits response: ${response.body}");
+     final data = jsonDecode(response.body);
+
+     // If backend returns an array directly
+     final List visitList = data is List ? data : data['data'] ?? [];
+
+     final visits = visitList.map((v) => Visit.fromJson(v)).toList();
+     print("Parsed visits count: ${visits.length}");
+     return visits;
+    } else {
+      debugPrint("ERROR RESPONSE: ${response.body}");
+      throw Exception('Failed to load visits');
+    }
   }
-}
+
 
 
     // ---------------- NEWS ----------------
@@ -186,5 +190,46 @@ class ApiService {
     throw Exception('Login failed: ${response.body}');
   }
 }
+
+// ---------------- UPCOMING EVENTS ----------------
+static Future<List<UpcomingEvent>> fetchUpcomingEvents() async {
+    final response = await http.get(Uri.parse('$baseUrl/upcoming-events'));
+
+  debugPrint('STATUS: ${response.statusCode}');
+  debugPrint('BODY: ${response.body}');
+
+
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<UpcomingEvent> events = (data['events'] as List)
+          .map((eventJson) => UpcomingEvent.fromJson(eventJson))
+          .toList();
+      return events;
+    } else {
+      throw Exception('Failed to load upcoming events');
+    }
+  }
+
+  // ---------------- DELETE VISIT ----------------
+  static Future<bool> deleteVisit(int id) async {
+    final url = "$baseUrl/event-requests/$id";
+    debugPrint("DELETE URL: $url");
+
+    final res = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+
+    debugPrint("DELETE STATUS: ${res.statusCode}");
+    debugPrint("DELETE BODY: ${res.body}");
+
+    return res.statusCode == 200;
+  }
+
+
 }
+
 

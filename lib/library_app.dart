@@ -41,6 +41,7 @@ class _LibraryAppState extends State<LibraryApp> {
         visitList: widget.registeredVisitList,
         onDeleteVisit: widget.onDeleteVisit,
         
+        
       );
     }
     return Directionality(

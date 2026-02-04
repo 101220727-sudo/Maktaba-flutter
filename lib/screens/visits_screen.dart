@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:library_app/models/visit.dart';
 import 'package:library_app/screens/news_page.dart';
+import 'package:library_app/screens/upcoming_event_screen.dart';
 import 'package:library_app/services/api_service.dart';
 import 'package:library_app/widgets/visit_list.dart';
 import 'package:library_app/widgets/main_drawer.dart';
@@ -15,19 +16,36 @@ class VisitScheduleScreen extends StatefulWidget {
   State<VisitScheduleScreen> createState() => _VisitScheduleScreenState();
 }
 
-class _VisitScheduleScreenState extends State<VisitScheduleScreen> {
+class _VisitScheduleScreenState extends State<VisitScheduleScreen>
+    with WidgetsBindingObserver {
   List<Visit> visitList = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadVisits();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// 🔁 when app returns from background (admin changed status)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadVisits();
+    }
   }
 
   Future<void> _loadVisits() async {
     try {
       final visits = await ApiService.getUserVisits(int.parse(widget.userId));
+      debugPrint("Fetched visits: ${visits.length}");
       setState(() {
         visitList = visits;
         loading = false;
@@ -36,6 +54,11 @@ class _VisitScheduleScreenState extends State<VisitScheduleScreen> {
       debugPrint("LOAD VISITS ERROR: $e");
       setState(() => loading = false);
     }
+  }
+
+  /// 🔁 pull to refresh
+  Future<void> _refresh() async {
+    await _loadVisits();
   }
 
   void _openNewVisit() async {
@@ -47,14 +70,23 @@ class _VisitScheduleScreenState extends State<VisitScheduleScreen> {
     );
 
     if (result == true) {
-      _loadVisits(); // 🔁 refresh from Laravel
+      _loadVisits();
     }
   }
 
-  void _deleteVisit(Visit visit) {
-    setState(() {
-      visitList.remove(visit);
-    });
+  /// 🗑️ delete from backend + UI
+  Future<void> _deleteVisit(Visit visit) async {
+    final success = await ApiService.deleteVisit(visit.id);
+
+    if (success) {
+      setState(() {
+        visitList.removeWhere((v) => v.id == visit.id);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("فشل حذف الطلب")),
+      );
+    }
   }
 
   @override
@@ -81,6 +113,16 @@ class _VisitScheduleScreenState extends State<VisitScheduleScreen> {
           userId: widget.userId,
           onAddVisit: _openNewVisit,
           onViewSchedule: () => Navigator.pop(context),
+          onUpcomingEventsTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    UpcomingEventsPage(userId: widget.userId),
+              ),
+            );
+          },
           onNewsTap: () {
             Navigator.pop(context);
             Navigator.push(
@@ -102,11 +144,16 @@ class _VisitScheduleScreenState extends State<VisitScheduleScreen> {
             );
           },
         ),
+
+        /// 👇 auto refresh + pull down refresh
         body: loading
             ? const Center(child: CircularProgressIndicator())
-            : VisitList(
-                visitList: visitList,
-                onDeleteVisit: _deleteVisit,
+            : RefreshIndicator(
+                onRefresh: _refresh,
+                child: VisitList(
+                  visitList: visitList,
+                  onDeleteVisit: _deleteVisit,
+                ),
               ),
       ),
     );
